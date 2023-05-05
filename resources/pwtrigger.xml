@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<pwtrigger>
+  <triggers>
+    <host>195.83.188.254</host>
+    <port>4445</port>
+    <create_triggers>true</create_triggers>
+    <priority>1</priority>
+    <confirm_code>11</confirm_code>
+    <call_list>default</call_list>
+    <warning_message>sismicite-revosima</warning_message>
+    <repeat>true</repeat>
+    <event_log_dir>/Users/patriceboissier/Downloads/PWTrigger/log</event_log_dir>
+  </triggers>
+  <alarm>
+    <time_window>1440</time_window>
+    <event_number>1</event_number>
+  </alarm>
+</pwtrigger>
