@@ -1,6 +1,6 @@
 /**
- * Created Feb 6, 2014 03:50:00 PM
- * Copyright 2014 Observatoire volcanologique du Piton de La Fournaise / IPGP
+ * Created May 5, 2023 by Patrice Boissier
+ * Copyright 2023 Observatoire volcanologique du Piton de La Fournaise / IPGP
  */
 package fr.ipgp.pwtrigger.utils;
 
@@ -13,21 +13,31 @@ import java.util.Collections;
 import java.util.ArrayList;
 import org.apache.logging.log4j.Logger;
 
+
 /**
+ * This class is used to log events to a file for web display
  * @author patriceboissier
- *
  */
 public class WebLog {
 	private File eventLogDir;
 	private Logger appLogger;
-	
+
+	/**
+	 * Constructor
+	 * @param eventLogDir the directory where the event log file is stored
+	 * @param appLogger the application logger
+	 */
 	public WebLog(File eventLogDir, Logger appLogger) {
 		this.eventLogDir = eventLogDir;
 		this.appLogger = appLogger;
 	}
 	
+	/**
+	 * Add an event to the event log file
+	 * @param eventDescription the event description
+	 */
 	public void addEvent(String eventDescription) {
-		System.out.println("New event to add to log : " + eventDescription);
+		appLogger.info("New event to add to log : " + eventDescription);
         File eventFile = new File(eventLogDir,"events.txt");
         try {
         	ArrayList<String> rows = new ArrayList<String>();
@@ -45,18 +55,14 @@ public class WebLog {
             int counter = 0;
             for(String cur: rows) {
             	if(counter<=20) {
-            		System.out.println(cur+"\n");
             		writer.write(cur+"\n");
             	}
             	counter++;
             }
             writer.close();
         	
-            //FileWriter out = new FileWriter(eventFile, true);
-            //out.write(eventDescription + "\n");
-            //out.close();
         } catch(IOException ioe) {
-        	appLogger.error("Probleme d'ecriture : " + ioe);
+        	appLogger.error("Write error : " + ioe);
         }
 	}
 }

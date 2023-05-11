@@ -14,5 +14,9 @@
   <alarm>
     <time_window>1440</time_window>
     <event_number>1</event_number>
+    <event_magnitude_min>0.5</event_magnitude_min>
   </alarm>
+  <fdsnws>
+    <url>http://195.83.188.34:8080/fdsnws/event/1/</url>
+  </fdsnws>
 </pwtrigger>

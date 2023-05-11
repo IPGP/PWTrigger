@@ -1,6 +1,6 @@
 /**
- * Created Tue 06, 2008 10:32:15 AM
- * Copyright 2008 Observatoire volcanologique du Piton de La Fournaise / IPGP
+ * Created May 5, 2023 by Patrice Boissier
+ * Copyright 2023 Observatoire volcanologique du Piton de La Fournaise / IPGP
  */
 package fr.ipgp.pwtrigger.utils;
 
@@ -17,6 +17,7 @@ import java.util.*;
 public class CommonUtilities {
 	
 	private static long current= System.currentTimeMillis();
+	
 	/**
 	 * This methode generates a unique id (in a single JVM) based on system time.
 	 * @return long the unique  id

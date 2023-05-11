@@ -1,5 +1,6 @@
 /**
- * 
+ * Created May 5, 2023 by Patrice Boissier
+ * Copyright 2023 Observatoire volcanologique du Piton de La Fournaise / IPGP
  */
 package fr.ipgp.pwtrigger.alarm;
 
@@ -12,8 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
+ * This class is used to send trigger to the alarm server
  * @author patriceboissier
- *
  */
 public class TriggerSender {
 	private int port;
@@ -21,11 +22,24 @@ public class TriggerSender {
 	private DatagramSocket socket = null;
 	private DatagramPacket packet = null;
 
+	/**
+	 * Constructor
+	 * @param inetAddress the alarm server Internet address
+	 * @param port the alarm server UDP port
+	 */
 	public TriggerSender(InetAddress inetAddress, int port) {
 		this.inetAddress = inetAddress;
 		this.port = port;
 	}
 
+	/**
+	 * Send a trigger to the alarm server
+	 * @param priority the trigger priority
+	 * @param confirmCode the trigger confirm code
+	 * @param callList the trigger call list
+	 * @param warningMessage the trigger warning message
+	 * @param repeat the trigger repeat flag
+	 */
 	public void send(int priority, String confirmCode, String callList, String warningMessage, boolean repeat) {
 		byte[] message = new byte[512];
 		Date date = new Date();
@@ -40,8 +54,6 @@ public class TriggerSender {
 		messageString += repeat + " ";
 		messageString += confirmCode + " ";
 		messageString += warningMessage;
-		
-		System.out.println("Trigger : " + messageString);
 		
 		message = new byte[messageString.length()];
 		message = messageString.getBytes();

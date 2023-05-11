@@ -1,6 +1,9 @@
 /**
- * Created May 9, 2008 2:26:12 PM
+ * Created May 5, 2023 by Patrice Boissier
  * Copyright 2008 Observatoire volcanologique du Piton de La Fournaise / IPGP
+ * 
+ * Running :
+ * java -Dlog4j2.configurationFile=file:./resources/log4j2.xml -jar PWTrigger.jar
  */
 package fr.ipgp.pwtrigger;
 
@@ -31,7 +34,6 @@ import edu.iris.dmc.service.EventService;
 import edu.iris.dmc.service.NoDataFoundException;
 import edu.iris.dmc.service.ServiceNotSupportedException;
 import edu.iris.dmc.event.model.Event;
-import edu.iris.dmc.event.model.Magnitude;
 
 
 /**
@@ -44,9 +46,11 @@ public class PWTrigger {
 	public static Logger appLogger = LogManager.getLogger("PWTrigger");
 	private static String configurationFileName;
 	private static File eventLogDir;
-	private static int parseInterval = 10;
+	private static int checkInterval = 10;
 	private static int timeWindow;
 	private static int eventNumber;
+	private static double eventMagnitudeMin;
+	private static String fdsnwsURL;
 	private static InetAddress inetAddress;
 	private static int port;
 	private static boolean createTrigger;
@@ -69,7 +73,6 @@ public class PWTrigger {
 			if (SystemUtils.IS_OS_LINUX) {
 				try {
 					String myName = ManagementFactory.getRuntimeMXBean().getName();
-					System.out.println("My name : " + myName);
 					String line;
 					Process p = Runtime.getRuntime().exec("ps -ef");
 					BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -111,27 +114,28 @@ public class PWTrigger {
 		
 		checkUnicity();
 		
-		readConfiguration();
+		initConfiguration();
 
 		appLogger.debug("Entering application.");
 		
 		while (true) {
 			
-			reloadConfiguration();
+			readConfiguration();
 			
-			appLogger.debug("Looking for events with parameters (time window/event numbers/station number) : " 
-					+ timeWindow + "/" + eventNumber);
+			appLogger.debug("Looking for events with parameters (time window/event numbers/min magnitude) : " 
+					+ timeWindow + "/" + eventNumber + "/" + eventMagnitudeMin);
 			
 			appLogger.debug("##################### New iteration");
 
 			checkEvents();
 
 			cleanQueue(newEvents);
-			cleanQueue(oldEvents);				
+			cleanQueue(oldEvents);
+
 			checkQueues();
 			
 			try {
-				Thread.sleep(1000 * parseInterval);
+				Thread.sleep(1000 * checkInterval);
 			} catch (InterruptedException ie) {
 				appLogger.error("Error while sleeping!");
 			}
@@ -140,10 +144,10 @@ public class PWTrigger {
 	}
 	
 	/**
-	 * Reads XML configuration file and creates a XMLConfiguration object
-	 * The application log a fatal error and exists if the configuration file is missing
+	 * Initialize the configuration.
+	 * Create ReloadingFileBasedConfigurationBuilder object and start the reloading trigger
 	 */
-	private static void readConfiguration() {
+	private static void initConfiguration() {
 		//Configurations configurations = new Configurations();
 		Parameters params = new Parameters();
 		File configurationFile = new File(configurationFileName);
@@ -155,7 +159,10 @@ public class PWTrigger {
 		trigger.start();
 	}
 	
-	private static void reloadConfiguration() {
+	/**
+	 * Reads the configuration file and initialize the variables
+	 */
+	private static void readConfiguration() {
 		try {
 		    configuration = builder.getConfiguration();
 		    eventLogDir = new File(configuration.getString("triggers.event_log_dir"));
@@ -165,6 +172,8 @@ public class PWTrigger {
 		    }
 		    timeWindow = configuration.getInt("alarm.time_window");
 			eventNumber = configuration.getInt("alarm.event_number");
+			eventMagnitudeMin = configuration.getDouble("alarm.event_magnitude_min");
+			fdsnwsURL = configuration.getString("fdsnws.url");
 			inetAddress =  InetAddress.getByName(configuration.getString("triggers.host"));
 			port = configuration.getInt("triggers.port");
 			createTrigger = configuration.getBoolean("triggers.create_triggers");
@@ -182,25 +191,28 @@ public class PWTrigger {
 		}
 	}
 	
+	/**
+	 * Extracts events from FDSNWS based on criterias (time window; magnitude).
+	 * Checks if the events are already in the newEvents queue or oldEvents queue.
+	 * If not, adds the event to the newEvents queue.
+	 * 
+	 */
 	private static void checkEvents() {
 		Date endTime = new Date();
 		Date startTime = new Date(endTime.getTime() - timeWindow * 60 * 1000);
 		// Make FDSNWS request
 		ServiceUtil serviceUtil = ServiceUtil.getInstance();
 		serviceUtil.setAppName("PWTrigger");
-		EventService eventService = serviceUtil.getEventService("http://195.83.188.34:8080/fdsnws/event/1/");
+		EventService eventService = serviceUtil.getEventService(fdsnwsURL);
 		EventCriteria criteria = new EventCriteria();
-		// Extract events in time window
+		// Extract events in time window based on the following criterias.
 		criteria.setStartTime(startTime);
 		criteria.setEndTime(endTime);
-		// TODO : add magnitude criteria in configuration file
-		criteria.setMinimumMagnitude(0.5);
+		criteria.setMinimumMagnitude(eventMagnitudeMin);
 		try {
 			List<Event> events = eventService.fetch(criteria);
 			for (Event event : events) {
-				//for(Magnitude magnitude:event.getMagnitudes()){
-				//	System.out.printf("\tMag: %3.1f %s\n", magnitude.getValue(), magnitude.getType());
-				//}
+				// Create EventWrapper object to compare events
 				EventWrapper eventWrapper = new EventWrapper(event);
 				if (newEvents.contains((EventWrapper)eventWrapper) || oldEvents.contains((EventWrapper)eventWrapper)) {
 					appLogger.debug("Event already used.");
@@ -222,6 +234,11 @@ public class PWTrigger {
 		}
     }
 	
+	/**
+	 * Clean queue from events older than time window
+	 * @param pbq PriorityBlockingQueue to clean
+	 * @throws ConcurrentModificationException if the queue is modified while iterating
+	 */
 	private static void cleanQueue(PriorityBlockingQueue<EventWrapper> pbq) throws ConcurrentModificationException {
 		ArrayList<EventWrapper> toBeRemoved = new ArrayList<EventWrapper>();
 		for(EventWrapper e : pbq) {
@@ -235,6 +252,10 @@ public class PWTrigger {
 		}
 	}
 	
+	/**
+	 * Check if the number of events in the newEvents queue is greater than the eventNumber threshold.
+	 * If so, send a trigger and transfer the events to the oldEvents queue.
+	 */
 	private static void checkQueues() {
 		appLogger.debug(newEvents.size() + " events in the new events queue and " + oldEvents.size() + " events in the old events queue.");
 		if (newEvents.size() >= eventNumber) {
@@ -252,6 +273,9 @@ public class PWTrigger {
 		}
 	}
 	
+	/**
+	 * Send a trigger to the alarm server
+	 */
 	private static void sendTrigger() {
 		triggerSender = new TriggerSender(inetAddress, port);
 		triggerSender.send(priority, confirmCode, callList, warningMessage, repeat);
