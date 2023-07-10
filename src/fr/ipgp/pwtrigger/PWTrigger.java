@@ -213,11 +213,25 @@ public class PWTrigger {
 			List<Event> events = eventService.fetch(criteria);
 			for (Event event : events) {
 				// Create EventWrapper object to compare events
+				Boolean alreadyUsed = false;
 				EventWrapper eventWrapper = new EventWrapper(event);
-				if (newEvents.contains((EventWrapper)eventWrapper) || oldEvents.contains((EventWrapper)eventWrapper)) {
-					appLogger.debug("Event already used.");
+
+				for (EventWrapper newEventWrapper : newEvents) {
+					if (eventWrapper.equals(newEventWrapper)) {
+						alreadyUsed = true;
+					}
+				}
+
+				for (EventWrapper oldEventWrapper : oldEvents) {
+					if (eventWrapper.equals(oldEventWrapper)) {
+						alreadyUsed = true;
+					}
+				}
+
+				if (alreadyUsed) {
+					appLogger.debug("Event already used : " + eventWrapper.getEvent().getPublicId());
 				} else {
-					appLogger.debug("New event.");
+					appLogger.debug("New event : " + eventWrapper.getEvent().getPublicId());
 					newEvents.add(eventWrapper);
 					WebLog webLog = new WebLog(eventLogDir, appLogger);
 					webLog.addEvent(event.toString());

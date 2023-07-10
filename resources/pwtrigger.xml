@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <pwtrigger>
   <triggers>
-    <host>195.83.188.254</host>
+    <host>192.168.1.1</host>
     <port>4445</port>
     <create_triggers>true</create_triggers>
     <priority>1</priority>
@@ -9,7 +9,7 @@
     <call_list>default</call_list>
     <warning_message>sismicite-revosima</warning_message>
     <repeat>true</repeat>
-    <event_log_dir>/Users/patriceboissier/Downloads/PWTrigger/log</event_log_dir>
+    <event_log_dir>/opt/PWTrigger/log</event_log_dir>
   </triggers>
   <alarm>
     <time_window>1440</time_window>
@@ -17,6 +17,6 @@
     <event_magnitude_min>0.5</event_magnitude_min>
   </alarm>
   <fdsnws>
-    <url>http://195.83.188.34:8080/fdsnws/event/1/</url>
+    <url>http://192.168.1.2:8080/fdsnws/event/1/</url>
   </fdsnws>
 </pwtrigger>
