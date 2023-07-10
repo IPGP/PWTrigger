@@ -39,6 +39,13 @@ public class WebLog {
 	public void addEvent(String eventDescription) {
 		appLogger.info("New event to add to log : " + eventDescription);
         File eventFile = new File(eventLogDir,"events.txt");
+		if(!eventFile.exists()) {
+			try {
+				eventFile.createNewFile();
+			} catch(IOException ioe) {
+				appLogger.error("Error creating event log file : " + ioe);
+			}
+		}
         try {
         	ArrayList<String> rows = new ArrayList<String>();
             BufferedReader reader = new BufferedReader(new FileReader(eventFile));
