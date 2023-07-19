@@ -1,0 +1,21 @@
+[Unit]
+Description=PWTrigger
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=sysop
+Group=sysop
+WorkingDirectory=/opt/PWTrigger
+ExecStart=/bin/bash /opt/PWTrigger/pwtrigger.sh
+Restart=on-failure
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=/var/log/pwtrigger.log
+Environment=USER=sysop HOME=/home/sysop
+#StandardOutput=tty
+
+[Install]
+WantedBy=multi-user.target
+
