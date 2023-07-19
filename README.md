@@ -15,11 +15,26 @@ Si le nombre de séismes récupérés dépasse le seuil défini dans le fichier 
 ## Installation
 
 Pour fonctionner, l'application a besoin de :
-* L'environnement d'exécution Java (https://www.java.com).
+* L'environnement de développement Java (https://www.java.com) et l'outil Apache Ant (https://ant.apache.org)
 
 Par exemple sous Debian
 ```sh
-apt-get install asterisk default-jre
+apt-get install ant default-jdk
+```
+Une fois le projet cloné, la compilation/installation se fait avec la commande
+```sh
+ant build
+```
+Il est possible de l'installer manuellement en créant un dossier contenant le JAR et le dossier resources. Il faut aussi copier le script de lancement dans le dossier de base, au même niveau que le fichier Jar. Le dossier contiendra :
+
+```sh
+|-- pwtrigger.sh
+`-- dist
+    |-- PWTrigger.jar
+    |-- lib
+    `-- resources
+        |-- log4j2.xml
+        `-- pwtrigger.xml
 ```
 
 ### Création d'un fichier son pour l'alarme
@@ -94,3 +109,6 @@ Pour accéder aux journaux de l’application, utiliser la commande :
 ```sh
 journalctl -u pwtrigger.service
 ```
+## Configuration
+
+Pour configurer le logiciel suivre la [procédure détaillée](CONFIGURATION.md).
