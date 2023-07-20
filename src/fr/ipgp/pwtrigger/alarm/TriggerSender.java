@@ -49,7 +49,7 @@ public class TriggerSender {
 		String messageString = "02 ";
 		messageString += priority + " ";
 		messageString += simpleFormat.format(date) + " ";
-		messageString += "EarthWorm ";
+		messageString += "PWTrigger ";
 		messageString += callList + " ";
 		messageString += repeat + " ";
 		messageString += confirmCode + " ";
